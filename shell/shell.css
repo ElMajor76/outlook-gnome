@@ -1,0 +1,118 @@
+* { box-sizing: border-box; }
+
+:root {
+  --bg: #fafafa;
+  --sidebar-bg: #ebebeb;
+  --fg: #2e3436;
+  --muted-fg: #6e6e6e;
+  --border: rgba(0, 0, 0, 0.09);
+  --hover: rgba(0, 0, 0, 0.06);
+  --active: rgba(0, 0, 0, 0.1);
+  --accent: #3584e4;
+  --accent-fg: #ffffff;
+  --winctl-bg: rgba(0, 0, 0, 0.08);
+  --winctl-bg-hover: rgba(0, 0, 0, 0.14);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #242424;
+    --sidebar-bg: #303030;
+    --fg: #eeeeec;
+    --muted-fg: #9a9996;
+    --border: rgba(255, 255, 255, 0.08);
+    --hover: rgba(255, 255, 255, 0.08);
+    --active: rgba(255, 255, 255, 0.12);
+    --accent: #78aeed;
+    --accent-fg: #1c1c1c;
+    --winctl-bg: rgba(255, 255, 255, 0.12);
+    --winctl-bg-hover: rgba(255, 255, 255, 0.2);
+  }
+}
+
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: "Cantarell", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+#headerbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 38px;
+  background: var(--sidebar-bg);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  -webkit-app-region: drag;
+  z-index: 10;
+}
+
+.header-zone {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 6px;
+  -webkit-app-region: no-drag;
+}
+
+#header-left { min-width: 44px; }
+
+#header-title {
+  flex: 1;
+  text-align: center;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--fg);
+  pointer-events: none;
+}
+
+.winctl,
+.hamburger-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: var(--winctl-bg);
+  color: var(--fg);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  flex: none;
+}
+
+.winctl:hover,
+.hamburger-btn:hover { background: var(--winctl-bg-hover); }
+.winctl:active,
+.hamburger-btn:active { background: var(--active); }
+.winctl svg,
+.hamburger-btn svg { width: 14px; height: 14px; }
+
+.header-separator {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+  margin: 0 2px;
+  flex: none;
+}
+
+#empty-state {
+  position: fixed;
+  left: 0; right: 0; top: 38px; bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: var(--bg);
+  color: var(--muted-fg);
+  font-size: 14px;
+  text-align: center;
+}
+
+#empty-state.hidden { display: none; }

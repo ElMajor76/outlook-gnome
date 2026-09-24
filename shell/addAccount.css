@@ -1,0 +1,99 @@
+* { box-sizing: border-box; }
+
+:root {
+  --bg: #fafafa;
+  --fg: #2e3436;
+  --muted-fg: #6e6e6e;
+  --border: rgba(0, 0, 0, 0.15);
+  --field-bg: #ffffff;
+  --accent: #3584e4;
+  --accent-fg: #ffffff;
+  --flat-bg: rgba(0, 0, 0, 0.07);
+  --flat-bg-hover: rgba(0, 0, 0, 0.12);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #242424;
+    --fg: #eeeeec;
+    --muted-fg: #9a9996;
+    --border: rgba(255, 255, 255, 0.15);
+    --field-bg: #1e1e1e;
+    --accent: #78aeed;
+    --accent-fg: #1c1c1c;
+    --flat-bg: rgba(255, 255, 255, 0.08);
+    --flat-bg-hover: rgba(255, 255, 255, 0.14);
+  }
+}
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: "Cantarell", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.dialog-box {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.dialog-box label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 13px;
+  color: var(--muted-fg);
+}
+
+.dialog-box input,
+.dialog-box select {
+  padding: 8px 10px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--fg);
+  background: var(--field-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  outline: none;
+}
+
+.dialog-box input:focus,
+.dialog-box select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.hidden { display: none; }
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.dialog-actions button {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-family: inherit;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+#dialog-confirm {
+  background: var(--accent);
+  color: var(--accent-fg);
+  font-weight: 600;
+}
+
+#dialog-cancel {
+  background: var(--flat-bg);
+  color: var(--fg);
+}
+
+#dialog-cancel:hover { background: var(--flat-bg-hover); }

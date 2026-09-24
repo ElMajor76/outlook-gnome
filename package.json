@@ -1,0 +1,19 @@
+{
+  "name": "outlook-gnome",
+  "version": "1.0.0",
+  "description": "Client Outlook multi-comptes en Electron, intégré à GNOME",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "TitanSurtur",
+  "license": "MIT",
+  "dependencies": {
+    "electron-store": "^8.2.0"
+  },
+  "devDependencies": {
+    "electron": "^44.4.5"
+  }
+}

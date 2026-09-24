@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:;" />
+  <title>Ajouter un compte</title>
+  <link rel="stylesheet" href="addAccount.css" />
+</head>
+<body>
+  <div class="dialog-box">
+    <label>Nom
+      <input id="dialog-label" type="text" placeholder="Pro, Perso..." autofocus />
+    </label>
+    <label>Type de compte
+      <select id="dialog-type">
+        <option value="work">Microsoft 365 / entreprise</option>
+        <option value="personal">Outlook.com / personnel</option>
+        <option value="shared">Boîte partagée (accès délégué)</option>
+      </select>
+    </label>
+    <label id="dialog-parent-wrap" class="hidden">Compte délégué depuis
+      <select id="dialog-parent"></select>
+    </label>
+    <label id="dialog-email-wrap" class="hidden">Adresse de la boîte partagée
+      <input id="dialog-email" type="email" placeholder="support@entreprise.com" />
+    </label>
+    <div class="dialog-actions">
+      <button id="dialog-cancel">Annuler</button>
+      <button id="dialog-confirm">Ajouter</button>
+    </div>
+  </div>
+
+  <script src="addAccount.js"></script>
+</body>
+</html>
