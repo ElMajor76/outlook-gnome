@@ -27,7 +27,9 @@ const store = new Store({
 });
 
 const ICON_DIR = path.join(__dirname, 'assets');
-const REAL_ICON_PATH = path.join(ICON_DIR, 'icon-real.png');
+// Bundled assets (ICON_DIR) live inside the read-only asar once packaged; captured
+// state must go somewhere writable, hence userData rather than alongside the app.
+const REAL_ICON_PATH = path.join(app.getPath('userData'), 'icon-real.png');
 let APP_ICON = nativeImage.createFromPath(
   fs.existsSync(REAL_ICON_PATH) ? REAL_ICON_PATH : path.join(ICON_DIR, 'icon-512.png')
 );
@@ -253,6 +255,7 @@ async function captureRealIcon(favicons, ses) {
       const img = nativeImage.createFromBuffer(buffer);
       if (img.isEmpty()) continue;
       iconCaptured = true;
+      fs.mkdirSync(path.dirname(REAL_ICON_PATH), { recursive: true });
       fs.writeFileSync(REAL_ICON_PATH, img.toPNG());
       const large = img.getSize().width >= 128 ? img : img.resize({ width: 256, height: 256, quality: 'best' });
       APP_ICON = large;
@@ -267,9 +270,35 @@ async function captureRealIcon(favicons, ses) {
 }
 
 function partitionFor(account) {
-  return account.type === 'shared' && account.parentId
-    ? `persist:acct-${account.parentId}`
-    : `persist:acct-${account.id}`;
+  // Every account gets its own isolated storage, including shared mailboxes:
+  // two live WebContentsView instances on the same origin+partition would
+  // otherwise share localStorage/IndexedDB and clobber each other's app state.
+  return `persist:acct-${account.id}`;
+}
+
+async function cloneAuthCookies(fromPartition, toPartition) {
+  const fromSession = session.fromPartition(fromPartition);
+  const toSession = session.fromPartition(toPartition);
+  const cookies = await fromSession.cookies.get({});
+  for (const cookie of cookies) {
+    const domain = cookie.domain.replace(/^\./, '');
+    const url = `${cookie.secure ? 'https' : 'http'}://${domain}${cookie.path}`;
+    try {
+      await toSession.cookies.set({
+        url,
+        name: cookie.name,
+        value: cookie.value,
+        domain: cookie.hostOnly ? undefined : cookie.domain,
+        path: cookie.path,
+        secure: cookie.secure,
+        httpOnly: cookie.httpOnly,
+        expirationDate: cookie.expirationDate,
+        sameSite: cookie.sameSite,
+      });
+    } catch {
+      // a handful of cookies can fail to set (odd domain/sameSite combos); skip them
+    }
+  }
 }
 
 function startUrlFor(account) {
@@ -354,7 +383,7 @@ function showAndFocusAccount(accountId) {
   setUnread(accountId, 0);
 }
 
-function addAccount({ label, type, email, parentId }) {
+async function addAccount({ label, type, email, parentId }) {
   const account = { id: crypto.randomUUID(), label: label || 'Compte' };
   if (type === 'shared') {
     account.type = 'shared';
@@ -362,6 +391,9 @@ function addAccount({ label, type, email, parentId }) {
     account.parentId = parentId;
   } else {
     account.type = type === 'personal' ? 'personal' : 'work';
+  }
+  if (account.type === 'shared' && account.parentId) {
+    await cloneAuthCookies(partitionFor({ id: account.parentId }), partitionFor(account));
   }
   const accounts = getAccounts();
   accounts.push(account);
@@ -387,20 +419,42 @@ function removeAccount(accountId) {
   refreshTray();
 }
 
+function autostartExecPath() {
+  // AppImage: process.execPath points at a temp squashfs mount that goes away
+  // after this run, so the original .AppImage file path must be used instead.
+  if (process.env.APPIMAGE) return process.env.APPIMAGE;
+  if (app.isPackaged) return app.getPath('exe');
+  return path.join(__dirname, 'start.sh');
+}
+
+function autostartIconRef() {
+  // Packaged installs (deb/rpm) register the icon into the system theme under
+  // this name; that lookup works from any working directory, unlike a raw path.
+  if (app.isPackaged && !process.env.APPIMAGE) return 'outlook-gnome';
+  // AppImage and dev mode have no theme entry, and a path under __dirname would
+  // point inside a read-only asar once packaged — materialize a real file instead.
+  const iconPath = path.join(app.getPath('userData'), 'autostart-icon.png');
+  try {
+    fs.mkdirSync(path.dirname(iconPath), { recursive: true });
+    fs.writeFileSync(iconPath, APP_ICON.toPNG());
+    return iconPath;
+  } catch {
+    return '';
+  }
+}
+
 function setAutostart(enabled) {
   store.set('autostart', enabled);
   const autostartDir = path.join(app.getPath('home'), '.config', 'autostart');
   const desktopPath = path.join(autostartDir, 'outlook-gnome.desktop');
-  const fs = require('node:fs');
   if (enabled) {
     fs.mkdirSync(autostartDir, { recursive: true });
-    const execPath = path.join(__dirname, 'start.sh');
     const contents = [
       '[Desktop Entry]',
       'Type=Application',
       'Name=Outlook',
-      `Exec=${execPath} --hidden`,
-      `Icon=${path.join(ICON_DIR, 'icon-app-v2.png')}`,
+      `Exec="${autostartExecPath()}" --hidden`,
+      `Icon=${autostartIconRef()}`,
       'X-GNOME-Autostart-enabled=true',
       'Terminal=false',
       '',
@@ -577,8 +631,8 @@ ipcMain.handle('dialog:parent-accounts', () =>
     .filter((a) => a.type !== 'shared')
     .map((a) => ({ id: a.id, label: a.label }))
 );
-ipcMain.handle('dialog:submit', (_event, payload) => {
-  const account = addAccount(payload);
+ipcMain.handle('dialog:submit', async (_event, payload) => {
+  const account = await addAccount(payload);
   if (addAccountWindow) addAccountWindow.close();
   if (mainWindow) mainWindow.webContents.send('accounts:refresh');
   return account;

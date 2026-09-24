@@ -5,6 +5,10 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
+    "dist": "electron-builder --linux AppImage deb rpm",
+    "dist:appimage": "electron-builder --linux AppImage",
+    "dist:deb": "electron-builder --linux deb",
+    "dist:rpm": "electron-builder --linux rpm",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -14,6 +18,39 @@
     "electron-store": "^8.2.0"
   },
   "devDependencies": {
-    "electron": "^44.4.5"
+    "electron": "^44.4.5",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "io.github.elmajor76.outlookgnome",
+    "productName": "Outlook GNOME",
+    "executableName": "outlook-gnome",
+    "copyright": "Copyright © 2026 TitanSurtur",
+    "icon": "assets/icon-512.png",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "mailPreload.js",
+      "shell/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "linux": {
+      "target": ["AppImage", "deb", "rpm"],
+      "category": "Network",
+      "maintainer": "TitanSurtur",
+      "vendor": "TitanSurtur",
+      "synopsis": "Client Outlook multi-comptes intégré à GNOME",
+      "description": "Client Outlook multi-comptes en Electron, avec notifications natives GNOME et support des boîtes partagées.",
+      "desktop": {
+        "entry": {
+          "Name": "Outlook GNOME",
+          "Comment": "Client Outlook multi-comptes intégré à GNOME",
+          "Categories": "Network;Email;"
+        }
+      }
+    }
   }
 }
